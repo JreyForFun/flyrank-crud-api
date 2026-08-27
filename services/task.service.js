@@ -20,6 +20,9 @@ export async function getTasks(limit, offset) {
 
 export async function getTaskById(taskId) {
     const task = tasks.find(t => t.id === taskId);
+    if(!task){
+        return false;
+    }
     return task;
 }
 
