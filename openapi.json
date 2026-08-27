@@ -1,0 +1,21 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Task API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/tasks": {
+      "get": { "summary": "List tasks" },
+      "post": { "summary": "Create task" }
+    },
+    "/tasks/{id}": {
+      "get": { "summary": "Get task by ID" },
+      "put": { "summary": "Update task" },
+      "delete": { "summary": "Delete task" }
+    },
+    "/health": {
+      "get": { "summary": "Health check" }
+    }
+  }
+}
