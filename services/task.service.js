@@ -30,13 +30,15 @@ export async function createTask(title, description) {
 }
 
 export async function updateTask(id, title, done) {
-    // TODO: Implement database update
-    // For now, just return false to indicate not implemented
-    return false;
+    const task = db.updateTask(id, title, done);
+    if (!task) return false;
+
+    return task;
 }
 
 export async function deleteTask(id) {
-    // TODO: Implement database delete
-    // For now, just return false to indicate not implemented
-    return false;
+    const result = db.deleteTask(id);
+    if (!result) return false;
+
+    return true;
 }

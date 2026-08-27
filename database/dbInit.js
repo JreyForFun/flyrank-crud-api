@@ -45,3 +45,27 @@ export function createTask(title, description){
      return task;
 }
 
+export function updateTask(id, title, done){
+    const update = taskDb.prepare(
+        'UPDATE tasks SET title=?, done=? WHERE id=?'
+    ).run(title, done ? 1 : 0, id);
+
+    const task = taskDb.prepare(
+        'SELECT * FROM tasks WHERE id = ?'
+    ).get(id);
+    return task;
+}
+
+export function deleteTask(id){
+    const task = taskDb.prepare(
+        'SELECT * FROM tasks WHERE id = ?'
+    ).get(id);
+
+    if(!task){
+        return false;
+    }
+
+    taskDb.prepare('DELETE FROM tasks WHERE id = ?').run(id);
+    return true;
+}
+    
