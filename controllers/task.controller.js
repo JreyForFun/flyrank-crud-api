@@ -2,11 +2,13 @@ import * as taskService from '../services/task.service.js';
 
 export async function getTasks(req, res) {
     try {
-        const limit = 10;
-        const offset = req.query.offset ? parseInt(req.query.offset) : 0;
+        const currentCount = req.query.currentCount ? parseInt(req.query.currentCount) : 0;
 
-        const result = await taskService.getTasks(limit, offset);
-        return res.status(200).json({success: false, result});
+        const result = await taskService.getTasks(currentCount);
+        if (!result) {
+            return res.status(400).json({ success: false, message: "Failed to get tasks" });
+        }
+        return res.status(200).json({success: true, ...result});
     } catch (error) {
         return res.status(500).json({ success: false, message: error.message });
     }
@@ -15,15 +17,15 @@ export async function getTasks(req, res) {
 
 export async function getTaskById(req, res) {
     try {
-    const { taskId } = req.params;
-    const task = await taskService.getTaskById(Number(taskId));
+    const { id } = req.params;
+    const task = await taskService.getTaskById(Number(id));
     if (!task) {
-        return res.status(404).json({ error: `Task ${taskId} not found` });
+        return res.status(404).json({ error: `Task ${id} not found` });
     }
     return res.status(200).json({
         success: true,
         task
-    }); 
+    });
 } catch (error) {
     res.status(500).json({success: false, message: error.message});
 }
@@ -54,10 +56,10 @@ export async function updateTask(req, res) {
         const { title, done } = req.body;
         const result = await taskService.updateTask(Number(id), title, done);
 
-        if (!result.success) {
-            return res.status(400).json(result);
+        if (!result) {
+            return res.status(404).json({ error: `Task ${id} not found` });
         }
-        return res.status(200).json(result);
+        return res.status(200).json({ success: true, task: result });
     } catch (error) {
         return res.status(500).json({ success: false, message: error.message });
     }
@@ -68,8 +70,8 @@ export async function deleteTask(req, res) {
         const { id } = req.params;
         const result = await taskService.deleteTask(Number(id));
 
-        if (!result.success) {
-            return res.status(404).json(result);
+        if (!result) {
+            return res.status(404).json({ error: `Task ${id} not found` });
         }
         return res.status(204).send();
     } catch (error) {
