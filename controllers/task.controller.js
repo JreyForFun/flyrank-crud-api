@@ -3,8 +3,9 @@ import * as taskService from '../services/task.service.js';
 export async function getTasks(req, res) {
     try {
         const currentCount = req.query.currentCount ? parseInt(req.query.currentCount) : 0;
+        const doneFilter = req.query.done;
 
-        const result = await taskService.getTasks(currentCount);
+        const result = await taskService.getTasks(currentCount, doneFilter);
         if (!result) {
             return res.status(400).json({ success: false, message: "Failed to get tasks" });
         }
@@ -82,3 +83,27 @@ export async function deleteTask(req, res) {
     }
 }
 
+export async function searchTasks(req, res){
+    try {
+        const { search } = req.query;
+        const tasks = await taskService.searchTasks(search)
+        return res.status(200).json({
+            success: true,
+            tasks: tasks
+    })
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+}
+
+export async function getStats(req,res){
+    try {
+        const result = await taskService.getStats()
+        return res.status(200).json({
+            success: true,
+            tasks: tasks
+        })
+    } catch (error) {
+        return res.status(500).json({success: false, message: error.message})
+    }
+}

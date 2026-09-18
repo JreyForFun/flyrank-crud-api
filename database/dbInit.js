@@ -7,18 +7,32 @@ taskDb.prepare(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
     description TEXT,
-    done BOOLEAN DEFAULT 0
+    done BOOLEAN DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIEMSTAMP
   )
 `).run();
 
-export function getTasks(currentCount = 0){
-    const limit = currentCount + 5; // Add 5 more items each time
-    const tasks = taskDb.prepare(
-        'SELECT * from tasks LIMIT ? OFFSET 0'
-    ).all(limit);
-    if(!tasks){
-        return false;
+export function getTasks(currentCount = 0, doneFilter = null){
+    let query = 'SELECT * from tasks';
+    let params = [];
+    
+    if (doneFilter !== null) {
+        const doneValue = doneFilter === 'true' ? 1 : 0;
+        query += ' WHERE done = ?';
+        params.push(doneValue);
     }
+    
+    const limit = currentCount + 5;
+    query += ' LIMIT ? OFFSET 0';
+    params.push(limit);
+
+    if(sortBy === 'title') {
+        query +=' ORDER BY title ASC'
+    }
+    
+    const tasks = taskDb.prepare(query).all(...params);
+    
     return tasks;
 }
 
@@ -34,7 +48,7 @@ export function getTaskById(id){
 
 export function createTask(title, description){
      const result = taskDb.prepare(
-         "INSERT INTO tasks (title, description) VALUES (?, ?)"
+         "INSERT INTO tasks (title, description, created_at, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
      ).run(title, description);
 
      // Return the created task
@@ -47,9 +61,9 @@ export function createTask(title, description){
 
 export function updateTask(id, title, done){
     const update = taskDb.prepare(
-        'UPDATE tasks SET title=?, done=? WHERE id=?'
+        'UPDATE tasks SET title=?, done=?, updated_at=CURRENT_TIMESTAMP WHERE id=?'
     ).run(title, done ? 1 : 0, id);
-
+ 
     const task = taskDb.prepare(
         'SELECT * FROM tasks WHERE id = ?'
     ).get(id);
@@ -68,4 +82,34 @@ export function deleteTask(id){
     taskDb.prepare('DELETE FROM tasks WHERE id = ?').run(id);
     return true;
 }
+
+// GET /tasks?search=milk
+export function searchTasks(searchTerm) {
+    const tasks = taskDb.prepare(
+        'SELECT * FROM tasks WHERE title LIKE ?'
+    ).all(`%${searchTerm}%`);
+    return tasks;
+}
+
+// GET /tasks?done=true
+export function getTasksDoneStatus(doneStatus){
+    const doneValue = donesStatus === 'true' ? 1 : 0
+    const tasks = taskDb.prepare(
+        'SELECT * FROM tasks WHERE done = ?'
+    ).all(doneValue);
+
+    return tasks;
+}
+
+// GET /stats
+export function getStats() {
+    const stats = taskDb.prepare(`
+        SELECT 
+            COUNT(*) as total,
+            SUM(CASE WHEN done = 1 THEN 1 ELSE 0 END) as completed,
+            SUM(CASE WHEN done = 0 THEN 1 ELSE 0 END) as pending
+        FROM tasks
+    `).get();
     
+    return stats;
+}

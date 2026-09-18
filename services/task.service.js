@@ -1,6 +1,8 @@
 import * as db from '../database/dbInit.js'
 
-export async function getTasks(currentCount = 0) {
+export async function getTasks(currentCount = 0, doneFilter = null) {
+
+    
     const tasks = db.getTasks(currentCount);
     if (!tasks) {
         return false;
@@ -41,4 +43,16 @@ export async function deleteTask(id) {
     if (!result) return false;
 
     return true;
+}
+
+export async function searchTasks(searchTerm) {
+    const tasks = db.searchTasks(searchTerm)
+    if (!tasks) return false;
+
+    return tasks;
+}
+
+export async function getStats() {
+    const stats = db.getStats();
+    return stats;
 }
